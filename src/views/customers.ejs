@@ -1,0 +1,59 @@
+<%- include('partials/_header') %>
+
+<div class="container">
+    <div class="row mt-5">
+        <div class="col md-7">
+            <table class="table table-bordered table-hover">
+                <thead>
+                    <tr>
+                        <th>N°</th>
+                        <th>Nombre</th>
+                        <th>Direccion</th>
+                        <th>Celular</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% if (data && data.length > 0) { %>
+                        <% for (let i = 0; i < data.length; i++) { %>
+                            <tr>
+                                <td><%= (i + 1) %></td>
+                                <td><%= data[i].name %></td>
+                                <td><%= data[i].address %></td>
+                                <td><%= data[i].phone %></td>
+                                <td>
+                                    <a href="/update/<%= data[i].id %>" class="btn btn-success mb-2">Editar</a>
+                                    <a href="/delete/<%= data[i].id %>" class="btn btn-danger">Eliminar</a>
+                                </td>
+                            </tr>
+                        <% } %>
+                    <% } else { %>
+                        <tr>
+                            <td colspan="4">No hay datos disponibles.</td>
+                        </tr>
+                    <% } %>                    
+                </tbody>
+            </table>
+        </div>
+        <div class="col md-5">
+            <div class="card">
+                <div class="card-body">
+                    <form action="/add" method="post">
+                        <div class="form-group mt-2">
+                            <input type="text" name="name" value="" placeholder="Ingresa tu nombre" class="form-control">
+                        </div>
+                        <div class="form-group mt-2">
+                            <input type="text" name="address" value="" placeholder="Ingresa tu direccion" class="form-control">
+                        </div>
+                        <div class="form-group mt-2">
+                            <input type="text" name="phone" value="" placeholder="Ingresa tu numero de celular" class="form-control">
+                        </div>
+                        <button type="submit" class="btn btn-primary mt-4"> Nuevo Comprador </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<%- include('partials/_footer') %>

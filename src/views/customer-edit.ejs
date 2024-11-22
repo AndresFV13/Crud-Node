@@ -1,0 +1,26 @@
+<%- include('partials/_header') %>
+
+<div class="container mt-5">
+    <div class="row">
+        <div class="col md-5">
+            <div class="card">
+                <div class="card-body">
+                    <form action="/update/<%= data.id %>" method="post">
+                        <div class="form-group mt-2">
+                            <input type="text" name="name" value="<%= data.name %>" placeholder="Ingresa tu nombre" class="form-control">
+                        </div>
+                        <div class="form-group mt-2">
+                            <input type="text" name="address" value="<%= data.address %>" placeholder="Ingresa tu direccion" class="form-control">
+                        </div>
+                        <div class="form-group mt-2">
+                            <input type="text" name="phone" value="<%= data.phone %>" placeholder="Ingresa tu numero de celular" class="form-control">
+                        </div>
+                        <button type="submit" class="btn btn-primary mt-4"> Editar Comprador </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<%- include('partials/_footer') %>
