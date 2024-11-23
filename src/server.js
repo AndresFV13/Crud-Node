@@ -26,13 +26,15 @@ app.use(myConnection(mysql, {
     port: 3306,
     database: 'crudnode'
 }, 'single'));
-app.use(express.urlencoded({extended: false}))
+app.use(express.urlencoded({extended: false}));
 
 // rutas
 app.use(customerRoutes);
 
 // archivos estaticos imágenes, estilos framework 
 app.use(express.static(path.join(__dirname, "public")));
+
+
 
 // Inicia el servidor después de configurar todo
 app.listen(PORT, () => {
