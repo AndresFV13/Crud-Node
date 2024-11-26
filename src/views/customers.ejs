@@ -23,7 +23,7 @@
                                 <td><%= data[i].phone %></td>
                                 <td>
                                     <a href="#" class="btn btn-success mb-2 edit-btn" data-id="<%= data[i].id %>">Editar</a>
-                                    <a href="/delete/<%= data[i].id %>" class="btn btn-danger">Eliminar</a>
+                                    <a href="/delete/<%= data[i].id %>" class="btn btn-danger btn-supr">Eliminar</a>
                                 </td>
                             </tr>
                         <% } %>
@@ -58,21 +58,67 @@
 </div>
 
 <script>
-    document.querySelectorAll('.edit-btn').forEach((button) => {
-        button.addEventListener('click', function (e) {
-            e.preventDefault();
-            const id = this.dataset.id;
-            editCustomer(id);
+    // Escuchamos el evento de envío del formulario
+    document.querySelector("form").addEventListener("submit", function(event) {
+        event.preventDefault(); // Evita que el formulario se envíe inmediatamente
+
+        var name = document.querySelector("input[name='name']").value;
+        var address = document.querySelector("input[name='address']").value;
+        var phone = document.querySelector("input[name='phone']").value;
+
+        // Validación para campos vacíos
+        if (!name || !address || !phone) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'Por favor, complete todos los campos.',
+                confirmButtonText: 'Aceptar'
+            });
+            event.preventDefault();
+            return;
+        }
+
+        // Validación del teléfono
+        var phonePattern = /^\d{10}$/;
+        if (!phonePattern.test(phone)) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'El número de teléfono debe tener exactamente 10 dígitos.',
+                confirmButtonText: 'Aceptar'
+            });
+            event.preventDefault(); // Evita el envío del formulario
+            return;
+        }
+        Swal.fire({
+            icon: 'success',
+            title: '¡Usuario guardado exitosamente!',
+            text: 'El cliente se guardó correctamente.',
+            showConfirmButton: true, // No mostrar el botón de confirmación
+            timer: 0 // La alerta permanecerá 3 segundos
+        }).then(() => {
+            // Después de 3 segundos, enviar el formulario
+            document.querySelector("form").submit();
         });
     });
 
+</script>
+
+<script>
+    document.querySelectorAll(".edit-btn").forEach((button) => {
+        button.addEventListener("click", function (event) {
+            event.preventDefault()
+            const id = this.dataset.id
+            editCustomer(id)
+        })
+    })
     function editCustomer(id) {
-        event.preventDefault(); 
+        event.preventDefault();
 
         fetch(`/api/customers/${id}`)
             .then((response) => {
                 if (!response.ok) {
-                    throw new Error(`Error al obtener los datos del cliente: ${response.status}`);
+                    throw new Error(Error `al obtener los datos del cliente: ${ response.status }`);
                 }
                 return response.json();
             })
@@ -81,20 +127,46 @@
                 document.querySelector('input[name="address"]').value = customer.address;
                 document.querySelector('input[name="phone"]').value = customer.phone;
 
-                
+
                 const submitButton = document.querySelector('button[type="submit"]');
                 submitButton.textContent = "Actualizar";
-                submitButton.classList.add("btn-warning");
-                submitButton.classList.remove("btn-primary");
+                submitButton.classList.add("btn-dark");
+                submitButton.classList.remove("btn-warning");
 
-                document.querySelector('form').action = `/update/${id}`;
+                document.querySelector('form').action = `/update/${ id }`;
             })
             .catch((error) => {
                 console.error(error);
                 alert("No se pudieron cargar los datos del cliente.");
             });
     }
+</script>
 
+<script>
+    document.querySelectorAll(".btn-supr").forEach((button) => {
+        button.addEventListener("click", function (event) {
+            event.preventDefault();  // Evitar el comportamiento por defecto (navegar)
+
+            const deleteUrl = this.href;  // Obtener la URL de eliminación desde el atributo href
+
+            // Mostrar una alerta de confirmación con SweetAlert2
+            Swal.fire({
+                title: '¿Estás seguro?',
+                text: "Esta acción no se puede deshacer.",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Sí, eliminar',
+                cancelButtonText: 'Cancelar'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Si el usuario confirma, redirigirlo a la URL de eliminación
+                    window.location.href = deleteUrl;
+                }
+            });
+        });
+    });
 </script>
 
 <%- include('partials/_footer') %>
