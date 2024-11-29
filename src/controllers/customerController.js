@@ -3,28 +3,21 @@ const controller = {};
 
 controller.list = (req, res) => {
     req.getConnection((err, conn) => {
-        if (!req.session.userId) {
-            return res.redirect('/login');
-        }
-        if (err) return res.status(500).send("Error al conectar a la base de datos.");
-        
-        // Realiza la consulta para obtener todos los clientes
-        conn.query('SELECT * FROM customer', (err, results) => {
-            if (err) {
-                return res.status(500).send("Error al obtener los clientes.");
-            }
-            // Pasa los datos a la vista
-            res.render('customers', { data: results });
+        if (err) return res.status(500).send('Error de conexión');
+        conn.query('SELECT * FROM customer', (err, customers) => {
+            if (err) return res.status(500).send('Error al obtener datos');
+            res.render('customers', { data: customers }); 
         });
     });
 };
+
 
 controller.save = (req, res) => {
     const data = req.body;
 
     req.getConnection((err, conn) => {
         conn.query('INSERT INTO customer set ?', [data], (err, customer) => {
-            res.redirect('/');
+            res.redirect('/list');
         });
     })
 }
@@ -81,9 +74,13 @@ controller.registerUser = (req, res) => {
                 const hashedPassword = await bcrypt.hash(password, 10);
 
                 // Insertar nuevo usuario
-                conn.query('INSERT INTO users (username, password, registration_date) VALUES (?, ?, NOW())', [username, hashedPassword], (err) => {
+                conn.query('INSERT INTO users (username, password, registered_at) VALUES (?, ?, NOW())', [username, hashedPassword], (err, result) => {
                     if (err) return res.status(500).send({ message: 'Error al registrar el usuario.' });
-                    res.redirect('/'); // Redirige a la vista de login tras registro exitoso
+
+                    // Obtener el ID del usuario insertado
+                    const userId = result.insertId; // El ID del nuevo usuario
+                    req.session.user = { id: userId, username }; // Guardar en la sesión
+                    res.redirect('/list'); // Redirigir a la lista de usuarios
                 });
             } catch (error) {
                 console.error(error);
@@ -93,43 +90,36 @@ controller.registerUser = (req, res) => {
     });
 };
 
+
 controller.login = (req, res) => {
-    res.render('login'); // Renderiza la vista de login para solicitudes GET
+    res.render('login');
 };
 
 controller.loginUser = (req, res) => {
     const { username, password } = req.body;
 
     if (!username || !password) {
-        return res.status(400).send({ message: 'Por favor, complete todos los campos.' });
+        return res.status(400).render('login', { message: 'Por favor, complete todos los campos.' });
     }
 
     req.getConnection((err, conn) => {
         if (err) return res.status(500).send({ message: 'Error de conexión con la base de datos.' });
 
-        // Buscar al usuario en la base de datos
         conn.query('SELECT * FROM users WHERE username = ?', [username], async (err, results) => {
             if (err) return res.status(500).send({ message: 'Error al buscar el usuario.' });
             if (results.length === 0) {
-                return res.status(401).send({ message: 'Usuario no encontrado.' });
+                return res.status(401).render('login', { message: 'Usuario o contraseña incorrectos.' });
             }
 
             const user = results[0];
+            const passwordMatch = await bcrypt.compare(password, user.password);
 
-            try {
-                // Comparar la contraseña ingresada con la encriptada
-                const isPasswordValid = await bcrypt.compare(password, user.password);
-                if (!isPasswordValid) {
-                    return res.status(401).send({ message: 'Contraseña incorrecta.' });
-                }
-
-                // Establecer la sesión
-                req.session.userId = user.id;
-                res.redirect('/'); // Redirigir a la página principal tras login exitoso
-            } catch (error) {
-                console.error(error);
-                res.status(500).send({ message: 'Error al comparar la contraseña.' });
+            if (!passwordMatch) {
+                return res.status(401).render('login', { message: 'Usuario o contraseña incorrectos.' });
             }
+
+            req.session.user = { id: user.id, username: user.username };
+            res.redirect('/list'); 
         });
     });
 };
@@ -144,7 +134,7 @@ controller.update = (req, res) => {
             [name, address, phone, id],
             (err, result) => {
                 if (err) return res.status(500).send(err);
-                res.redirect('/'); 
+                res.redirect('/list'); 
             }
         );
     });
@@ -155,7 +145,7 @@ controller.delete = (req, res) => {
 
     req.getConnection((err, conn) => {
         conn.query('DELETE FROM customer WHERE id = ?', [id], (err, rows) => {
-            res.redirect('/');
+            res.redirect('/list');
         });
     })
 }

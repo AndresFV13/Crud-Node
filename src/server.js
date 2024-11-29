@@ -1,5 +1,5 @@
 const express = require("express");
-const session = require('express-session'); 
+const session = require('express-session');
 const myConnection = require('express-myconnection');
 const mysql = require('mysql');
 const morgan = require('morgan');
@@ -33,10 +33,17 @@ app.use(express.urlencoded({extended: false}));
 
 // Configuración de sesiones
 app.use(session({
-    secret: 'clave_secreta',
+    secret: 'clave-secreta',
     resave: false,
     saveUninitialized: false,
+    cookie: { secure: false } 
 }));
+
+// usuario a todas las vistas
+app.use((req, res, next) => {
+    res.locals.user = req.session.user;
+    next();
+});
 
 // Configuración de body-parser
 app.use(bodyParser.urlencoded({ extended: true }));
