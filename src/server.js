@@ -1,8 +1,11 @@
 const express = require("express");
+const session = require('express-session'); 
 const myConnection = require('express-myconnection');
 const mysql = require('mysql');
 const morgan = require('morgan');
 const path = require('path');
+const bcrypt = require('bcrypt');
+const bodyParser = require('body-parser');
 const customerRoutes = require('./routes/customer');  // Asegúrate de que las rutas estén correctas
 
 const app = express();
@@ -27,6 +30,17 @@ app.use(myConnection(mysql, {
     database: 'crudnode'
 }, 'single'));
 app.use(express.urlencoded({extended: false}));
+
+// Configuración de sesiones
+app.use(session({
+    secret: 'clave_secreta',
+    resave: false,
+    saveUninitialized: false,
+}));
+
+// Configuración de body-parser
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.json());
 
 // rutas
 app.use(customerRoutes);

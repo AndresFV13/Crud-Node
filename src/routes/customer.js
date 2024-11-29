@@ -10,6 +10,11 @@ router.get('/delete/:id', customerController.delete);
 router.get('/update/:id', customerController.edit);
 router.post('/update/:id', customerController.update);
 
+router.get('/register', customerController.register);
+router.post('/register', customerController.registerUser);
+router.get('/login', customerController.login);
+router.post('/login', customerController.loginUser);
+
 router.get('/api/customers/:id', customerController.updateUser);
 
 module.exports=router;
