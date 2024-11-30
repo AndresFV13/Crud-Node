@@ -31,6 +31,23 @@ router.get('/logout', (req, res) => {
     });
 });
 
+router.post('/api/check-user', (req, res) => {
+    const { username } = req.body;
+
+    req.getConnection((err, conn) => {
+        if (err) return res.status(500).json({ error: 'Error de conexión' });
+
+        conn.query('SELECT * FROM users WHERE username = ?', [username], (err, results) => {
+            if (err) return res.status(500).json({ error: 'Error en la consulta' });
+
+            if (results.length > 0) {
+                return res.json({ exists: true });
+            }
+            return res.json({ exists: false });
+        });
+    });
+});
+
 router.use(isAuthenticated);
 
 router.get('/list',customerController.list);

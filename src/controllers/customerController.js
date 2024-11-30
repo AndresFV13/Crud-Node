@@ -53,43 +53,43 @@ controller.register = (req, res) => {
 };
 
 controller.registerUser = (req, res) => {
-    const { username, password } = req.body;
+    const { username, password, password_confirm } = req.body;
 
-    if (!username || !password) {
-        return res.status(400).send({ message: 'Por favor, complete todos los campos.' });
+    // Validaciones del servidor
+    if (!username || !password || !password_confirm) {
+        return res.status(400).render('register', { errorMessage: 'Todos los campos son obligatorios.' });
+    }
+    if (password !== password_confirm) {
+        return res.status(400).render('register', { errorMessage: 'Las contraseñas no coinciden.' });
+    }
+    if (password.length < 8) {
+        return res.status(400).render('register', { errorMessage: 'La contraseña debe tener al menos 8 caracteres.' });
     }
 
-    req.getConnection(async (err, conn) => {
-        if (err) return res.status(500).send({ message: 'Error de conexión con la base de datos.' });
+    req.getConnection((err, conn) => {
+        if (err) return res.status(500).render('register', { errorMessage: 'Error al conectarse a la base de datos.' });
 
-        // Comprobar si el usuario ya existe
         conn.query('SELECT * FROM users WHERE username = ?', [username], async (err, results) => {
-            if (err) return res.status(500).send({ message: 'Error al buscar el usuario.' });
+            if (err) return res.status(500).render('register', { errorMessage: 'Error al verificar el correo.' });
             if (results.length > 0) {
-                return res.status(400).send({ message: 'El usuario ya está registrado.' });
+                return res.status(400).render('register', { errorMessage: 'El correo ya está registrado.' });
             }
 
             try {
-                // Encriptar la contraseña
                 const hashedPassword = await bcrypt.hash(password, 10);
-
-                // Insertar nuevo usuario
                 conn.query('INSERT INTO users (username, password, registered_at) VALUES (?, ?, NOW())', [username, hashedPassword], (err, result) => {
-                    if (err) return res.status(500).send({ message: 'Error al registrar el usuario.' });
+                    if (err) return res.status(500).render('register', { errorMessage: 'Error al registrar el usuario.' });
 
-                    // Obtener el ID del usuario insertado
-                    const userId = result.insertId; // El ID del nuevo usuario
-                    req.session.user = { id: userId, username }; // Guardar en la sesión
-                    res.redirect('/list'); // Redirigir a la lista de usuarios
+                    req.session.user = { id: result.insertId, username }; 
+                    
+                    res.redirect('/list');
                 });
             } catch (error) {
-                console.error(error);
-                res.status(500).send({ message: 'Error al encriptar la contraseña.' });
+                res.status(500).render('register', { errorMessage: 'Error al procesar la contraseña.' });
             }
         });
     });
 };
-
 
 controller.login = (req, res) => {
     res.render('login');
@@ -99,27 +99,27 @@ controller.loginUser = (req, res) => {
     const { username, password } = req.body;
 
     if (!username || !password) {
-        return res.status(400).render('login', { message: 'Por favor, complete todos los campos.' });
+        return res.status(400).render('login', { errorMessage: 'Por favor, complete todos los campos.' });
     }
 
     req.getConnection((err, conn) => {
-        if (err) return res.status(500).send({ message: 'Error de conexión con la base de datos.' });
+        if (err) return res.status(500).render('login', { errorMessage: 'Error de conexión con la base de datos.' });
 
         conn.query('SELECT * FROM users WHERE username = ?', [username], async (err, results) => {
-            if (err) return res.status(500).send({ message: 'Error al buscar el usuario.' });
+            if (err) return res.status(500).render('login', { errorMessage: 'Error al buscar el usuario.' });
             if (results.length === 0) {
-                return res.status(401).render('login', { message: 'Usuario o contraseña incorrectos.' });
+                return res.status(401).render('login', { errorMessage: 'Usuario o contraseña incorrectos.' });
             }
 
             const user = results[0];
             const passwordMatch = await bcrypt.compare(password, user.password);
 
             if (!passwordMatch) {
-                return res.status(401).render('login', { message: 'Usuario o contraseña incorrectos.' });
+                return res.status(401).render('login', { errorMessage: 'Contraseña incorrecta.' });
             }
 
             req.session.user = { id: user.id, username: user.username };
-            res.redirect('/list'); 
+            res.redirect('/list'); // Redirige al dashboard
         });
     });
 };
