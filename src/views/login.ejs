@@ -6,33 +6,104 @@
 
 <div class="wrapper fadeInDown">
   <div id="formContent">
-    <!-- Tabs Titles -->
-
     <!-- Icon -->
     <div class="fadeIn first">
       <img src="https://static.vecteezy.com/system/resources/previews/008/844/895/non_2x/user-icon-design-free-png.png" id="icon" alt="User Icon" />
     </div>
 
     <!-- Login Form -->
-    <form action="/login" method="post">
-      <input type="text" id="login" class="fadeIn second" name="username" placeholder="Correo Electronico">
+    <form id="loginForm" action="/login" method="post">
+      <input type="text" id="login" class="fadeIn second" name="username" placeholder="Correo Electrónico">
       <input type="password" id="password" class="fadeIn third" name="password" placeholder="Contraseña">
-      <input type="submit" class="fadeIn fourth" value="Iniciar Sesion">
+      <input type="submit" class="fadeIn fourth" value="Iniciar Sesión">
     </form>
 
-    <!-- Remind Passowrd -->
+    <!-- Error Message -->
+    <% if (typeof errorMessage !== 'undefined') { %>
+      <div class="alert alert-danger mt-3" role="alert" id="errorMessage">
+        <%= errorMessage %>
+      </div>
+    <% } %>
+
+    
+    <!-- Links -->
     <div id="formFooter">
       <a class="underlineHover" href="/register">Registrarme</a>
     </div>
     <div id="formFooter">
-      <a class="underlineHover" href="#">Olvidaste tu contraseña?</a>
+      <a class="underlineHover" href="#">¿Olvidaste tu contraseña?</a>
     </div>
+<<<<<<< HEAD
     <div id="formFooter">
       <a class="underlineHover" href="/complaint">Tienes alguan solicitud o queja?</a>
     </div>
 
+=======
+>>>>>>> 009eae2b2b50fb7d6ce94fca34fe2f7097ed4c08
   </div>
 </div>
+
+<script>
+  document.getElementById('loginForm').addEventListener('submit', function (e) {
+  // Prevenir recarga al inicio
+  e.preventDefault();
+
+  // Obtener valores de los campos
+  const username = document.getElementById('login').value.trim();
+  const password = document.getElementById('password').value.trim();
+
+  const errorMessage = document.getElementById('errorMessage');
+
+  // Validar campos
+  if (!username || !password) {
+    if (!errorMessage) {
+      createErrorMessage('Por favor, complete todos los campos.');
+    } else {
+      errorMessage.textContent = 'Por favor, complete todos los campos.';
+      errorMessage.style.display = 'block';
+    }
+    return;
+  }
+
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(username)) {
+    if (!errorMessage) {
+      createErrorMessage('Ingrese un correo electrónico válido.');
+    } else {
+      errorMessage.textContent = 'Ingrese un correo electrónico válido.';
+      errorMessage.style.display = 'block';
+    }
+    return;
+  }
+
+  if (password.length < 6) {
+    if (!errorMessage) {
+      createErrorMessage('La contraseña debe tener al menos 6 caracteres.');
+    } else {
+      errorMessage.textContent = 'La contraseña debe tener al menos 6 caracteres.';
+      errorMessage.style.display = 'block';
+    }
+    return;
+  }
+
+  // Si todo es válido, ocultar el mensaje de error
+  if (errorMessage) {
+    errorMessage.style.display = 'none';
+  }
+
+  // Enviar el formulario manualmente
+  this.submit();
+});
+
+// Función para crear el contenedor de error si no existe
+function createErrorMessage(message) {
+  const errorContainer = document.createElement('div');
+  errorContainer.id = 'errorMessage';
+  errorContainer.className = 'alert alert-danger mt-3';
+  errorContainer.textContent = message;
+  document.querySelector('#formContent').insertAdjacentElement('afterbegin', errorContainer);
+}
+</script>
+
 <style>
 
 /* BASIC */

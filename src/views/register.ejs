@@ -6,27 +6,90 @@
 
 <div class="wrapper fadeInDown">
   <div id="formContent">
-    <!-- Tabs Titles -->
-
-    <!-- Icon -->
+    <!-- Títulos -->
     <div class="fadeIn first">
       <img src="https://static.vecteezy.com/system/resources/previews/008/844/895/non_2x/user-icon-design-free-png.png" id="icon" alt="User Icon" />
     </div>
 
-    <!-- Login Form -->
+    <% if (typeof errorMessage !== 'undefined') { %>
+      <div class="alert alert-danger mt-3" role="alert">
+        <%= errorMessage %>
+      </div>
+    <% } %>    
+
+    <!-- Formulario de Registro -->
     <form action="/register" method="post">
-      <input type="text" id="login" class="fadeIn second" name="username" placeholder="Correo Electronico">
+      <input type="text" id="login" class="fadeIn second" name="username" placeholder="Correo Electrónico" >
       <input type="password" id="password" class="fadeIn third" name="password" placeholder="Contraseña">
+      <input type="password" id="password-confirm" class="fadeIn third" name="password_confirm" placeholder="Confirma tu contraseña">
       <input type="submit" class="fadeIn fourth" value="Registrarme">
     </form>
 
-    <!-- Remind Passowrd -->
+    <!-- Enlaces adicionales -->
     <div id="formFooter">
-      <a class="underlineHover" href="/login">Iniciar Sesion</a>
+      <a class="underlineHover" href="/login">Iniciar Sesión</a>
     </div>
-
   </div>
 </div>
+
+<script>
+  document.querySelector('form').addEventListener('submit', async function (event) {
+    event.preventDefault(); // Evitar el envío por defecto
+
+    const username = document.getElementById('login').value.trim();
+    const password = document.getElementById('password').value.trim();
+    const passwordConfirm = document.getElementById('password-confirm').value.trim();
+
+    let errorMessage = '';
+
+    // Expresión regular para validar la contraseña segura
+    const regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+
+    // Validaciones
+    if (!username) {
+        errorMessage = 'Por favor, ingresa un correo electrónico.';
+    } else if (!password) {
+        errorMessage = 'Por favor, ingresa una contraseña.';
+    } else if (!regex.test(password)) {
+        errorMessage = 'La contraseña debe tener al menos 8 caracteres, una letra mayúscula, una minúscula, un número y un carácter especial.';
+    } else if (password !== passwordConfirm) {
+        errorMessage = 'Las contraseñas no coinciden.';
+    }
+
+    // Comprobar si el usuario ya existe
+    if (!errorMessage) {
+        try {
+            const response = await fetch('/api/check-user', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username }),
+            });
+            const data = await response.json();
+            if (data.exists) {
+                errorMessage = 'El usuario ya está registrado con ese correo.';
+            }
+        } catch (err) {
+            errorMessage = 'Error al verificar el correo. Intente nuevamente.';
+        }
+    }
+
+    // Mostrar el mensaje de error si existe
+    if (errorMessage) {
+        const errorContainer = document.querySelector('#error-message');
+        if (!errorContainer) {
+            const newErrorContainer = document.createElement('div');
+            newErrorContainer.id = 'error-message';
+            newErrorContainer.className = 'alert alert-danger mt-3';
+            newErrorContainer.textContent = errorMessage;
+            this.insertAdjacentElement('beforebegin', newErrorContainer);
+        } else {
+            errorContainer.textContent = errorMessage;
+        }
+    } else {
+        this.submit(); // Enviar el formulario si no hay errores
+    }
+});
+</script>
 
 <style>
 
