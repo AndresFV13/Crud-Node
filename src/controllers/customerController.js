@@ -1,4 +1,6 @@
 const bcrypt = require('bcrypt');
+const nodemailer = require('nodemailer');
+
 const controller = {};
 
 controller.list = (req, res) => {
@@ -149,5 +151,43 @@ controller.delete = (req, res) => {
         });
     })
 }
+
+controller.complaint = (req, res) => {
+    res.render('complaint');
+}
+
+controller.submitComplaint = async (req, res) => {
+    const { name, email, complaint } = req.body;
+
+    // Configuración de Nodemailer con Mailtrap
+    const transporter = nodemailer.createTransport({
+        host: 'sandbox.smtp.mailtrap.io', 
+        port: 2525, 
+        auth: {
+            user: 'a3cd15ebc44564', 
+            pass: '0a11ca4b325fa0', 
+        },
+    });
+
+    const mailOptions = {
+        from: email, 
+        to: email, 
+        subject: 'Nueva Queja Recibida',
+        text: `Has recibido una nueva queja:
+
+        Nombre: ${name}
+        Correo: ${email}
+        Queja: ${complaint}
+        Fecha: ${new Date().toLocaleString()}` // Formato legible para la fecha
+    };
+
+    try {
+        await transporter.sendMail(mailOptions);
+        res.status(200).json({ message: 'Correo enviado exitosamente' });
+    } catch (error) {
+        console.error('Error al enviar la queja:', error);
+        res.status(500).json({ message: 'Error al enviar la queja' });
+    }
+};
 
 module.exports = controller;

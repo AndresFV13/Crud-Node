@@ -1,0 +1,108 @@
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white text-center">
+                    <h4>Formulario de Quejas y Reclamos</h4>
+                </div>
+                <div class="card-body">
+                    <form id="complaintForm">
+                        <!-- Campo Nombre -->
+                        <div class="mb-3">
+                            <label for="name" class="form-label">Nombre</label>
+                            <input type="text" class="form-control" id="name" name="name" placeholder="Ingresa tu nombre" >
+                        </div>
+                        
+                        <!-- Campo Correo Electrónico -->
+                        <div class="mb-3">
+                            <label for="email" class="form-label">Correo Electrónico</label>
+                            <input type="email" class="form-control" id="email" name="email" placeholder="nombre@ejemplo.com" >
+                        </div>
+                        
+                        <!-- Campo Queja -->
+                        <div class="mb-3">
+                            <label for="complaint" class="form-label">Queja o Reclamo</label>
+                            <textarea class="form-control" id="complaint" name="complaint" rows="5" placeholder="Escribe tu queja aquí..." ></textarea>
+                        </div>
+                        
+                        <!-- Botón Enviar -->
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary btn-lg">Enviar Queja</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    document.getElementById('complaintForm').addEventListener('submit', async function (event) {
+        event.preventDefault(); // Prevenir el envío automático del formulario
+
+        // Obtener los valores del formulario
+        const name = document.getElementById('name').value.trim();
+        const email = document.getElementById('email').value.trim();
+        const complaint = document.getElementById('complaint').value.trim();
+
+        // Validar campos vacíos
+        if (!name || !email || !complaint) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Campos vacíos',
+                text: 'Por favor, completa todos los campos.',
+                confirmButtonText: 'Aceptar',
+            });
+            return;
+        }
+
+        // Validar formato de correo electrónico
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/; // Regex para validar correos
+        if (!emailRegex.test(email)) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Correo inválido',
+                text: 'Por favor, ingresa un correo electrónico válido.',
+                confirmButtonText: 'Aceptar',
+            });
+            return;
+        }
+
+        try {
+            // Enviar datos al servidor
+            const response = await fetch('http://localhost:3000/submit-complaint', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ name, email, complaint }), // Enviar datos como JSON
+            });
+
+            if (response.ok) {
+                Swal.fire({
+                    icon: 'success',
+                    title: '¡Gracias por tu queja!',
+                    text: 'La hemos recibido exitosamente.',
+                    confirmButtonText: 'Aceptar',
+                });
+
+                // Limpiar el formulario después de enviar el correo
+                this.reset();
+            } else {
+                throw new Error('Error al enviar la queja');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'Ocurrió un error al enviar tu queja. Por favor, intenta nuevamente.',
+                confirmButtonText: 'Aceptar',
+            });
+        }
+    });
+</script>

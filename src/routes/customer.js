@@ -31,6 +31,9 @@ router.get('/logout', (req, res) => {
     });
 });
 
+router.get('/complaint', customerController.complaint);
+router.post('/submit-complaint', customerController.submitComplaint);
+
 router.use(isAuthenticated);
 
 router.get('/list',customerController.list);
